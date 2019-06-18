@@ -165,6 +165,11 @@
                 context.restore();
                 return canvas;
             }
+
+            tmpCanvas.width = 0;
+            tmpCanvas.height = 0;
+            tmpContext= null;
+            tmpCanvas = null;
         }
         return originalRenderMethod(
             canvas,
