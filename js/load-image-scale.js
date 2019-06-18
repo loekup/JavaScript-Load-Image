@@ -259,6 +259,9 @@
             sourceWidth,
             sourceHeight
           )
+          img = null;
+          sourceWidth = null;
+          sourceHeight = null;
         }
       }
       canvas.width = destWidth
@@ -279,6 +282,8 @@
     }
     img.width = destWidth
     img.height = destHeight
+    canvas = null;
+    useCanvas = null;
     return img
   }
 })
