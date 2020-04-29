@@ -295,6 +295,10 @@
           // eslint-disable-next-line no-param-reassign
           img = canvas
         }
+
+        img = null;
+        sourceWidth = null;
+        sourceHeight = null;
       }
       canvas = loadImage.createCanvas(destWidth, destHeight)
       loadImage.transformCoordinates(canvas, options, data)
@@ -319,6 +323,8 @@
     }
     img.width = destWidth
     img.height = destHeight
+    canvas = null;
+    useCanvas = null;
     return img
   }
 })
