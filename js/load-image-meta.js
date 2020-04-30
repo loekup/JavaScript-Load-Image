@@ -29,17 +29,22 @@
 })(function (loadImage) {
   'use strict'
 
-  var hasblobSlice =
-    typeof Blob !== 'undefined' &&
+  loadImage.blobSlice =
+    loadImage.global.Blob &&
     (Blob.prototype.slice ||
       Blob.prototype.webkitSlice ||
       Blob.prototype.mozSlice)
 
-  loadImage.blobSlice =
-    hasblobSlice &&
-    function () {
-      var slice = this.slice || this.webkitSlice || this.mozSlice
-      return slice.apply(this, arguments)
+  loadImage.bufferSlice =
+    loadImage.global.ArrayBuffer.prototype.slice ||
+    function (begin, end) {
+      // Polyfill for IE10, which does not support ArrayBuffer.slice
+      // eslint-disable-next-line no-param-reassign
+      end = end || this.byteLength - begin
+      var arr1 = new Uint8Array(this, begin, end)
+      var arr2 = new Uint8Array(end)
+      arr2.set(arr1)
+      return arr2.buffer
     }
 
   loadImage.metaDataParsers = {
@@ -65,7 +70,7 @@
     // 256 KiB should contain all EXIF/ICC/IPTC segments:
     var maxMetaDataSize = options.maxMetaDataSize || 262144
     var noMetaData = !(
-      typeof DataView !== 'undefined' &&
+      loadImage.global.DataView &&
       file &&
       file.size >= 12 &&
       file.type === 'image/jpeg' &&
@@ -96,8 +101,6 @@
           var markerLength
           var parsers
           var i
-          var arr1
-          var arr2
           // Check for the JPEG marker (0xffd8):
           if (dataView.getUint16(0) === 0xffd8) {
             while (offset < maxOffset) {
@@ -143,16 +146,7 @@
             // Meta length must be longer than JPEG marker (2)
             // plus APPn marker (2), followed by length bytes (2):
             if (!options.disableImageHead && headLength > 6) {
-              if (buffer.slice) {
-                data.imageHead = buffer.slice(0, headLength)
-              } else {
-                // Workaround for IE10, which does not support
-                // ArrayBuffer.slice:
-                arr1 = new Uint8Array(buffer, 0, headLength)
-                arr2 = new Uint8Array(headLength)
-                arr2.set(arr1)
-                data.imageHead = arr2.buffer
-              }
+              data.imageHead = loadImage.bufferSlice.call(buffer, 0, headLength)
             }
           } else {
             // eslint-disable-next-line no-console
